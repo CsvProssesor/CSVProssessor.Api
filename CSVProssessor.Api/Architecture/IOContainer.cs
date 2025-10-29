@@ -1,4 +1,6 @@
-﻿using CSVProssessor.Domain;
+﻿using CSVProssessor.Application.Interfaces.Common;
+using CSVProssessor.Application.Services.Common;
+using CSVProssessor.Domain;
 using CSVProssessor.Infrastructure;
 using CSVProssessor.Infrastructure.Commons;
 using CSVProssessor.Infrastructure.Interfaces;
@@ -37,6 +39,11 @@ public static class IocContainer
         services.AddScoped<IClaimsService, ClaimsService>();
         services.AddScoped<ICurrentTime, CurrentTime>();
         services.AddScoped<ILoggerService, LoggerService>();
+
+
+        services.AddScoped<IBlobService, BlobService>();
+
+
 
         //services.AddHttpContextAccessor();
 
