@@ -1,7 +1,10 @@
-﻿namespace CSVProssessor.Domain.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace CSVProssessor.Domain.Entities
 {
     public class BaseEntity
     {
+        [Key]
         public Guid Id { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
