@@ -17,17 +17,7 @@ builder.Configuration
     .AddJsonFile("appsettings.json", true, true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, true)
     .AddEnvironmentVariables(); // Cái này luôn phải nằm cuối
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend",
-        policyBuilder =>
-        {
-            policyBuilder
-                .AllowAnyOrigin()
-                .AllowAnyMethod()
-                .AllowAnyHeader();
-        });
-});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
@@ -46,30 +36,32 @@ JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 builder.WebHost.UseUrls("http://0.0.0.0:5000");
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.SetupIocContainer();
 
 var app = builder.Build();
 app.UseCors("AllowFrontend");
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "UniSeapShopAPI API v1");
+        c.RoutePrefix = string.Empty;
+        c.ConfigObject.AdditionalItems.Add("persistAuthorization", "true");
+        c.InjectJavascript("/custom-swagger.js");
+        c.InjectStylesheet("/custom-swagger.css");
+    });
 }
 
-// hàm này để tự động migrate database khi chạy 
-// cho khỏi phải chạy lệnh update-database trong package manager console
-// chỉ cần add migration rồi chạy project là nó tự động cập nhật
-try
-{
-    app.ApplyMigrations(app.Logger);
-}
-catch (Exception e)
-{
-    app.Logger.LogError(e, "An problem occurred during migration!");
-}
+//try
+//{
+//    app.ApplyMigrations(app.Logger);
+//}
+//catch (Exception e)
+//{
+//    app.Logger.LogError(e, "An problem occurred during migration!");
+//}
 
 app.UseExceptionHandler(errorApp =>
 {
