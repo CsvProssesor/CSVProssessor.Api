@@ -30,7 +30,6 @@ public static class IocContainer
         return services;
     }
 
-
     public static IServiceCollection SetupBusinessServicesLayer(this IServiceCollection services)
     {
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -43,7 +42,6 @@ public static class IocContainer
 
         return services;
     }
-
 
     private static IServiceCollection SetupDbContext(this IServiceCollection services)
     {
@@ -117,7 +115,6 @@ public static class IocContainer
             }
         });
 
-
         return services;
     }
 
@@ -175,8 +172,6 @@ public static class IocContainer
     //            };
     //        });
 
-
     //    return services;
     //}
-
 }
