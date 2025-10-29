@@ -1,0 +1,160 @@
+version: '3.8'
+
+services:
+  # ==================== PostgreSQL Database ====================
+  postgres:
+    image: postgres:15-alpine
+    container_name: csvprossessor_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: csvprossessor_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - csvprossessor-network
+
+  # ==================== MinioS3 Object Storage ====================
+  minio:
+    image: minio/minio:latest
+    container_name: csvprossessor_minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"      # API
+      - "9001:9001"      # Console
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - csvprossessor-network
+
+  # ==================== RabbitMQ Message Broker ====================
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: csvprossessor_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"      # AMQP
+      - "15672:15672"    # Management Console
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - csvprossessor-network
+
+  # ==================== WebAPI Instance 1 (API + Queue Listener) ====================
+  csvprossessor.api-1:
+    image: ${DOCKER_REGISTRY-}csvprossessorapi
+    build:
+      context: .
+      dockerfile: CSVProssessor.Api/Dockerfile
+    container_name: csvprossessor_api_1
+    environment:
+      # Database Connection
+      DB_CONNECTION_STRING: "Server=postgres;Port=5432;Database=csvprossessor_db;User Id=postgres;Password=postgres;"
+      
+      # MinioS3 Configuration
+      MINIO_ENDPOINT: "http://minio:9000"
+      MINIO_ACCESS_KEY: "minioadmin"
+      MINIO_SECRET_KEY: "minioadmin"
+      MINIO_BUCKET: "csvfiles"
+      
+      # RabbitMQ Configuration
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USER: "guest"
+      RABBITMQ_PASSWORD: "guest"
+      RABBITMQ_QUEUE_NAME: "csv-import-queue"
+      RABBITMQ_TOPIC_NAME: "csv-changes-topic"
+      
+      # Service Settings: Vừa API vừa Queue Listener
+      SERVICE_TYPE: "ApiWithQueueListener"
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_URLS: "http://+:5000"
+      INSTANCE_NAME: "api-1"
+      
+    ports:
+      - "5001:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - csvprossessor-network
+    restart: unless-stopped
+
+  # ==================== WebAPI Instance 2 (API + Queue Listener) ====================
+  csvprossessor.api-2:
+    image: ${DOCKER_REGISTRY-}csvprossessorapi
+    build:
+      context: .
+      dockerfile: CSVProssessor.Api/Dockerfile
+    container_name: csvprossessor_api_2
+    environment:
+      # Database Connection
+      DB_CONNECTION_STRING: "Server=postgres;Port=5432;Database=csvprossessor_db;User Id=postgres;Password=postgres;"
+      
+      # MinioS3 Configuration
+      MINIO_ENDPOINT: "http://minio:9000"
+      MINIO_ACCESS_KEY: "minioadmin"
+      MINIO_SECRET_KEY: "minioadmin"
+      MINIO_BUCKET: "csvfiles"
+      
+      # RabbitMQ Configuration
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USER: "guest"
+      RABBITMQ_PASSWORD: "guest"
+      RABBITMQ_QUEUE_NAME: "csv-import-queue"
+      RABBITMQ_TOPIC_NAME: "csv-changes-topic"
+      
+      # Service Settings: Vừa API vừa Queue Listener
+      SERVICE_TYPE: "ApiWithQueueListener"
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_URLS: "http://+:5000"
+      INSTANCE_NAME: "api-2"
+      
+    ports:
+      - "5002:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - csvprossessor-network
+    restart: unless-stopped
+
+networks:
+  csvprossessor-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  minio_data:
+  rabbitmq_data:
