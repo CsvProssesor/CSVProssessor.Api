@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using CSVProssessor.Domain.Entities;
+﻿using CSVProssessor.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace CSVProssessor.Domain
 {

@@ -40,11 +40,8 @@ public static class IocContainer
         services.AddScoped<ICurrentTime, CurrentTime>();
         services.AddScoped<ILoggerService, LoggerService>();
 
-
         services.AddScoped<IBlobService, BlobService>();
         services.AddScoped<IRabbitMqService, RabbitMqService>();
-
-
 
         //services.AddHttpContextAccessor();
 

@@ -5,6 +5,7 @@
         Import = 0,
         Export = 1
     }
+
     public enum CsvJobStatus
     {
         Pending = 0,      // Đang chờ xử lý

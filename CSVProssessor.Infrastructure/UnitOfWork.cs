@@ -1,4 +1,5 @@
 ﻿using CSVProssessor.Domain;
+using CSVProssessor.Domain.Entities;
 using CSVProssessor.Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Linq.Expressions;
@@ -10,10 +11,15 @@ public class UnitOfWork : IUnitOfWork
     private readonly AppDbContext _dbContext;
     private IDbContextTransaction? _transaction;
 
-    public UnitOfWork(AppDbContext dbContext)
+    public UnitOfWork(AppDbContext dbContext, IGenericRepository<CsvJob> csvJobs, IGenericRepository<CsvRecord> csvRecords)
     {
         _dbContext = dbContext;
+        CsvJobs = csvJobs;
+        CsvRecords = csvRecords;
     }
+
+    public IGenericRepository<CsvJob> CsvJobs { get; }
+    public IGenericRepository<CsvRecord> CsvRecords { get; }
 
     public void Dispose()
     {

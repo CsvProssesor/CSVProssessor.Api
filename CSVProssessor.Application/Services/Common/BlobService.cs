@@ -187,7 +187,6 @@ namespace CSVProssessor.Application.Services.Common
             }
         }
 
-
         private string GetContentType(string fileName)
         {
             _logger.Info($"Determining content type for file: {fileName}");

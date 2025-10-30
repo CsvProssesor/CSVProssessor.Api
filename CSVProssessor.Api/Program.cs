@@ -10,7 +10,6 @@ builder.Services.AddControllers()
     .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
 builder.Services.AddEndpointsApiExplorer();
 
-
 //builder.Services.SetupIocContainer();
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -29,7 +28,6 @@ builder.Services.AddCors(options =>
                 .AllowAnyHeader();
         });
 });
-
 
 // Tắt việc map claim mặc định
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
