@@ -4,6 +4,7 @@
     {
         //upload
         Task<Guid> ImportCsvAsync(Stream fileStream, string fileName);
+
         //download
         Task<string> ExportCsvAsync(string exportFileName);
     }

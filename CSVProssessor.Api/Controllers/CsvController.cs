@@ -25,6 +25,5 @@ namespace CSVProssessor.Api.Controllers
             var importId = await _csvService.ImportCsvAsync(stream, file.FileName);
             return Ok(new { ImportId = importId });
         }
-
     }
 }

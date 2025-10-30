@@ -11,7 +11,6 @@ builder.Services.AddControllers()
     .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
 builder.Services.AddEndpointsApiExplorer();
 
-
 builder.Services.SetupIocContainer();
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -31,13 +30,11 @@ builder.Services.AddCors(options =>
         });
 });
 
-
 // Tắt việc map claim mặc định
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 builder.WebHost.UseUrls("http://0.0.0.0:5000");
 builder.Services.AddEndpointsApiExplorer();
-
 
 var app = builder.Build();
 
@@ -56,7 +53,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     });
 }
 
-// hàm này để tự động migrate database khi chạy 
+// hàm này để tự động migrate database khi chạy
 // cho khỏi phải chạy lệnh update-database trong package manager console
 // chỉ cần add migration rồi chạy project là nó tự động cập nhật
 try
