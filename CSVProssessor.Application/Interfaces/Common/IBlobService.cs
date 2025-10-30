@@ -12,17 +12,20 @@
         /// </summary>
         Task<string> GetPreviewUrlAsync(string fileName);
 
-        /// <summary>
-        ///     Lấy URL tải file có thời hạn từ MinIO (Presigned URL).
-        /// </summary>
-        Task<string> GetFileUrlAsync(string fileName);
+    /// <summary>
+    ///     Lấy URL tải file có thời hạn từ MinIO (Presigned URL).
+    /// </summary>
+    Task<string> GetFileUrlAsync(string fileName);
 
-        /// <summary>
-        ///     Xóa file khỏi MinIO theo tên file.
-        /// </summary>
-        Task DeleteFileAsync(string fileName);
+    /// <summary>
+    ///     Tải file từ MinIO về dưới dạng Stream.
+    /// </summary>
+    Task<Stream> DownloadFileAsync(string fileName);
 
-        /// <summary>
+    /// <summary>
+    ///     Xóa file khỏi MinIO theo tên file.
+    /// </summary>
+    Task DeleteFileAsync(string fileName);        /// <summary>
         ///     Thay thế ảnh cũ bằng ảnh mới: xóa ảnh cũ nếu có, upload ảnh mới và trả về preview URL.
         /// </summary>
         Task<string> ReplaceImageAsync(Stream newImageStream, string newImageName, string? oldImageUrl,

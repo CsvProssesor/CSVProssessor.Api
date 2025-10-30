@@ -1,4 +1,5 @@
 ﻿using CSVProssessor.Api.Architecture;
+using CSVProssessor.Api.BackgroundServices;
 using Microsoft.AspNetCore.Diagnostics;
 using SwaggerThemes;
 using System.IdentityModel.Tokens.Jwt;
@@ -35,6 +36,11 @@ JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 builder.WebHost.UseUrls("http://0.0.0.0:5000");
 builder.Services.AddEndpointsApiExplorer();
+
+// Register Background Services
+builder.Services.AddHostedService<CsvImportQueueListenerService>();
+builder.Services.AddHostedService<ChangeDetectionBackgroundService>();
+builder.Services.AddHostedService<CsvChangesTopicListenerService>();
 
 var app = builder.Build();
 

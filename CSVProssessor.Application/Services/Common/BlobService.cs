@@ -135,7 +135,39 @@ namespace CSVProssessor.Application.Services.Common
             catch (Exception ex)
             {
                 _logger.Error($"Error generating file URL: {ex.Message}");
-                return null;
+                throw;
+            }
+        }
+
+        public async Task<Stream> DownloadFileAsync(string fileName)
+        {
+            _logger.Info($"Downloading file: {fileName}");
+
+            try
+            {
+                var memoryStream = new MemoryStream();
+                var getObjectArgs = new GetObjectArgs()
+                    .WithBucket(_bucketName)
+                    .WithObject(fileName)
+                    .WithCallbackStream(async (stream) =>
+                    {
+                        await stream.CopyToAsync(memoryStream);
+                    });
+
+                await _minioClient.GetObjectAsync(getObjectArgs);
+                memoryStream.Position = 0; // Reset stream position to beginning
+                _logger.Success($"File '{fileName}' downloaded successfully. Size: {memoryStream.Length} bytes");
+                return memoryStream;
+            }
+            catch (MinioException minioEx)
+            {
+                _logger.Error($"MinIO Error during download: {minioEx.Message}");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Unexpected error during file download: {ex.Message}");
+                throw;
             }
         }
 
