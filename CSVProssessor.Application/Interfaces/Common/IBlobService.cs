@@ -25,10 +25,11 @@
         /// <summary>
         ///     Xóa file khỏi MinIO theo tên file.
         /// </summary>
-        Task DeleteFileAsync(string fileName);        /// <summary>
+        Task DeleteFileAsync(string fileName);
 
-                                                      ///     Thay thế ảnh cũ bằng ảnh mới: xóa ảnh cũ nếu có, upload ảnh mới và trả về preview URL.
-                                                      /// </summary>
+        /// <summary>S
+        /// Thay thế ảnh cũ bằng ảnh mới: xóa ảnh cũ nếu có, upload ảnh mới và trả về preview URL.
+        /// </summary>
         Task<string> ReplaceImageAsync(Stream newImageStream, string newImageName, string? oldImageUrl,
             string containerPrefix);
     }
