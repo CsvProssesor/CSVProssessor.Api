@@ -70,7 +70,7 @@ namespace CSVProssessor.Application.Worker
                     }
 
                     scopedLogger.Info($"Deserialized message - JobId: {message.JobId}, FileName: {message.FileName}");
-                    
+
                     if (string.IsNullOrWhiteSpace(message.FileName))
                     {
                         scopedLogger.Warn("FileName is empty, skipping processing.");
@@ -83,7 +83,7 @@ namespace CSVProssessor.Application.Worker
                     // Call CsvService to handle download, parse, and save to database
                     await csvService.SaveCsvRecordsAsync(message.JobId, message.FileName);
 
-                    scopedLogger.Info($"Successfully imported CSV file: {message.FileName}");
+                    scopedLogger.Success($"Successfully imported CSV file: {message.FileName}");
 
                     // ACK - xác nhận đã xử lý thành công
                     await channel.BasicAckAsync(ea.DeliveryTag, false);
@@ -107,6 +107,5 @@ namespace CSVProssessor.Application.Worker
             // Giữ service chạy cho đến khi bị cancel
             await Task.Delay(Timeout.Infinite, stoppingToken);
         }
-
     }
 }

@@ -50,6 +50,7 @@ public static class IocContainer
 
         // Register BackgroundServices
         services.AddHostedService<CsvImportQueueListenerService>();
+        services.AddHostedService<ChangeDetectionBackgroundService>();
 
         // Configure RabbitMQ Connection
         services.AddSingleton(sp =>

@@ -7,7 +7,6 @@ using CSVProssessor.Domain.Enums;
 using CSVProssessor.Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace CSVProssessor.Application.Services
 {
@@ -23,7 +22,6 @@ namespace CSVProssessor.Application.Services
             _blobService = blobService;
             _rabbitMqService = rabbitMqService;
         }
-
 
         public async Task<ImportCsvResponseDto> ImportCsvAsync(IFormFile file)
         {
@@ -101,7 +99,7 @@ namespace CSVProssessor.Application.Services
             {
                 await _unitOfWork.CsvRecords.AddAsync(record);
             }
-            
+
             // 4. Save changes to database
             await _unitOfWork.SaveChangesAsync();
 
@@ -226,5 +224,82 @@ namespace CSVProssessor.Application.Services
 
         //            throw new Exception($"Export failed: {ex.Message}", ex);
         //        }
+
+
+        /// <summary>
+        /// Detect changes and publish notification to RabbitMQ topic "csv-changes-topic"
+        /// Called by ChangeDetectionBackgroundService to check for changes and notify all instances.
+        /// </summary>
+        /// <param name="request">Request containing detection parameters</param>
+        /// <returns>Response containing detected changes and publishing status</returns>
+        public async Task<DetectChangesResponseDto> DetectAndPublishChangesAsync(DetectChangesRequestDto request)
+        {
+            DateTime timeThreshold;
+
+            if (request.LastCheckTime.HasValue)
+            {
+                // Use provided lastCheckTime
+                timeThreshold = request.LastCheckTime.Value;
+            }
+            else
+            {
+                // Calculate time threshold based on minutesBack
+                timeThreshold = DateTime.UtcNow.AddMinutes(-request.MinutesBack);
+            }
+
+            // Query records created or updated since time threshold
+            var records = await _unitOfWork.CsvRecords.GetAllAsync(x =>
+                (x.CreatedAt >= timeThreshold || (x.UpdatedAt.HasValue && x.UpdatedAt >= timeThreshold))
+                && !x.IsDeleted
+            );
+
+            bool publishedToTopic = false;
+
+            // Publish notification if changes detected and publishToTopic is true
+            if (request.PublishToTopic && records.Count > 0)
+            {
+                var notificationMessage = new CsvChangeNotificationMessage
+                {
+                    ChangeType = request.ChangeType,
+                    RecordIds = records.Select(x => x.Id).ToList(),
+                    TotalChanges = records.Count,
+                    DetectedAt = DateTime.UtcNow,
+                    CheckStartTime = timeThreshold,
+                    CheckEndTime = DateTime.UtcNow,
+                    InstanceName = request.InstanceName
+                };
+
+                // Publish to topic - all subscribed instances will receive this message
+                await _rabbitMqService.PublishToTopicAsync("csv-changes-topic", notificationMessage);
+                publishedToTopic = true;
+            }
+
+            // Map records to DTO
+            var recordDtos = records.Select(x => new CsvRecordDto
+            {
+                Id = x.Id,
+                JobId = x.JobId,
+                FileName = x.FileName,
+                ImportedAt = x.ImportedAt,
+                CreatedAt = x.CreatedAt,
+                UpdatedAt = x.UpdatedAt
+            }).ToList();
+
+            // Build response
+            var response = new DetectChangesResponseDto
+            {
+                Changes = recordDtos,
+                TotalChanges = records.Count,
+                PublishedToTopic = publishedToTopic,
+                DetectedAt = DateTime.UtcNow,
+                CheckStartTime = timeThreshold,
+                CheckEndTime = DateTime.UtcNow,
+                Message = records.Count > 0
+                    ? $"Detected {records.Count} changes. Published: {publishedToTopic}"
+                    : "No changes detected"
+            };
+
+            return response;
+        }
     }
 }
