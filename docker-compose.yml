@@ -155,6 +155,13 @@ networks:
     driver: bridge
 
 volumes:
+  # PostgreSQL volume - persistent storage
+  # Để tránh lỗi duplicate key, xóa folder data trước khi docker-compose up
+  # Windows: docker volume rm csvprossessorapi_postgres_data
+  # Linux/Mac: docker volume rm csvprossessor_postgres_data
   postgres_data:
+    driver: local
   minio_data:
+    driver: local
   rabbitmq_data:
+    driver: local
